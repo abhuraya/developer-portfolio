@@ -90,6 +90,31 @@ const projects = [
     visual: "maze",
     playable: true,
   },
+  {
+    number: "05",
+    title: "Fluid Wave Lab",
+    type: "Interactive physics simulation",
+    description:
+      "A real-time top-down wave simulator where overlapping ripples naturally reinforce or cancel, reflective walls reshape the field, and a continuous double-slit source reveals interference bands.",
+    highlights: ["Constructive + destructive interference", "Drawable reflective walls", "Continuous double-slit experiment"],
+    tags: ["React", "TypeScript", "Canvas API", "Wave Physics", "GitHub Pages"],
+    live: "https://abhuraya.github.io/Week-1-Project/",
+    repository: "https://github.com/abhuraya/Week-1-Project",
+    visual: "waves",
+    featured: true,
+  },
+  {
+    number: "06",
+    title: "Fruit Picker",
+    type: "Playful randomizer",
+    description:
+      "A colorful, responsive app that chooses from a broad collection of fruits, pairs every result with an emoji, and keeps each pick feeling fresh by preventing immediate repeats.",
+    highlights: ["75+ fruit choices", "Click + keyboard controls", "Animated, repeat-safe results"],
+    tags: ["JavaScript", "HTML5", "CSS3", "Netlify"],
+    live: "https://pickyfruits.netlify.app/",
+    repository: "https://github.com/abhuraya/Fruits",
+    visual: "fruit",
+  },
 ];
 
 const skills = [
@@ -276,6 +301,122 @@ function ProjectVisual({ type }) {
             </Box>
           ))}
         </SimpleGrid>
+      </Box>
+    );
+  }
+
+  if (type === "waves") {
+    return (
+      <Box
+        aria-hidden="true"
+        position="relative"
+        minH={{ base: "280px", md: "360px" }}
+        overflow="hidden"
+        bg="linear-gradient(135deg, #052b3b 0%, #075665 54%, #0b7480 100%)"
+      >
+        <Box
+          position="absolute"
+          inset="0"
+          opacity="0.25"
+          backgroundImage="linear-gradient(rgba(185,245,239,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(185,245,239,.18) 1px, transparent 1px)"
+          backgroundSize="28px 28px"
+        />
+
+        {[72, 126, 184, 244].map((size, index) => (
+          <Box
+            key={size}
+            position="absolute"
+            left="23%"
+            top="53%"
+            w={`${size}px`}
+            h={`${size}px`}
+            border="2px solid"
+            borderColor={index % 2 === 0 ? "rgba(129,238,226,.68)" : "rgba(223,250,246,.34)"}
+            borderRadius="full"
+            transform="translate(-50%, -50%)"
+          />
+        ))}
+
+        <Box position="absolute" left="22.8%" top="12%" w="3px" h="76%" bg="#9af0e6" boxShadow="0 0 22px rgba(154,240,230,.8)" />
+
+        <Box position="absolute" left="56%" top="0" w="7px" h="30%" bg="#e9e2cc" />
+        <Box position="absolute" left="56%" top="42%" w="7px" h="16%" bg="#e9e2cc" />
+        <Box position="absolute" left="56%" top="70%" w="7px" h="30%" bg="#e9e2cc" />
+
+        {["38%", "62%"].map((top) => (
+          <Box
+            key={top}
+            position="absolute"
+            left="76%"
+            top={top}
+            w={{ base: "150px", md: "220px" }}
+            h={{ base: "82px", md: "112px" }}
+            border="2px solid rgba(159,239,229,.54)"
+            borderRadius="50%"
+            transform="translate(-50%, -50%)"
+            boxShadow="0 0 0 18px rgba(125,222,214,.08), 0 0 0 38px rgba(125,222,214,.05)"
+          />
+        ))}
+
+        <Badge position="absolute" top="6" left="6" px="3" py="1.5" borderRadius="full" bg="rgba(4,29,40,.66)" color="#b9f5ef" backdropFilter="blur(9px)">
+          DOUBLE-SLIT SOURCE
+        </Badge>
+        <Text position="absolute" right="6" bottom="6" color="rgba(226,249,246,.72)" fontFamily="monospace" fontSize="xs" fontWeight="800" letterSpacing="0.12em">
+          LIVE WAVE FIELD
+        </Text>
+      </Box>
+    );
+  }
+
+  if (type === "fruit") {
+    return (
+      <Box
+        aria-hidden="true"
+        position="relative"
+        minH="245px"
+        overflow="hidden"
+        p={{ base: "6", md: "8" }}
+        bg="#fff0bd"
+        backgroundImage="radial-gradient(rgba(124,86,39,.18) 1px, transparent 1px)"
+        backgroundSize="17px 17px"
+      >
+        <Flex position="absolute" top="4" right="5" gap="1" align="end">
+          <Text fontSize={{ base: "5xl", md: "6xl" }} transform="rotate(-11deg)">🍓</Text>
+          <Text fontSize={{ base: "6xl", md: "7xl" }} transform="translateY(16px) rotate(8deg)">🍊</Text>
+          <Text fontSize={{ base: "5xl", md: "6xl" }} transform="rotate(12deg)">🥝</Text>
+        </Flex>
+
+        <Text color="#8d3f2b" fontSize="xs" fontWeight="900" letterSpacing="0.16em" textTransform="uppercase">
+          Feeling fruity?
+        </Text>
+        <Heading mt="3" maxW="230px" color="#342d20" fontSize={{ base: "2xl", md: "3xl" }} letterSpacing="-0.045em" lineHeight="1.02">
+          Pick a random fruit.
+        </Heading>
+
+        <Flex
+          position="absolute"
+          left={{ base: "6", md: "8" }}
+          right={{ base: "6", md: "8" }}
+          bottom={{ base: "6", md: "8" }}
+          align="center"
+          justify="space-between"
+          gap="4"
+          p="4"
+          border="1px solid rgba(114,76,34,.18)"
+          borderRadius="2xl"
+          bg="rgba(255,253,246,.86)"
+          boxShadow="0 14px 35px rgba(115,76,34,.13)"
+          backdropFilter="blur(8px)"
+        >
+          <HStack gap="3">
+            <Text fontSize="3xl">🍑</Text>
+            <Box>
+              <Text color="#89745a" fontSize="9px" fontWeight="900" letterSpacing="0.13em">TODAY&apos;S PICK</Text>
+              <Text color="#342d20" fontWeight="900">Peach</Text>
+            </Box>
+          </HStack>
+          <Badge px="3" py="2" borderRadius="full" bg="#4f6b45" color="white">PICK AGAIN →</Badge>
+        </Flex>
       </Box>
     );
   }
