@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Badge,
   Box,
@@ -21,9 +22,11 @@ import {
   Database,
   GitBranch,
   Mail,
+  Play,
   Server,
   Sparkles,
 } from "lucide-react";
+import MazeGame from "./MazeGame.jsx";
 
 const colors = {
   ink: "#1d211c",
@@ -74,6 +77,18 @@ const projects = [
     live: "https://lightcalculator.netlify.app",
     repository: "https://github.com/abhuraya/Calculator",
     visual: "calculator",
+  },
+  {
+    number: "04",
+    title: "The Verdant Maze",
+    type: "Playable first-person experiment",
+    description:
+      "A procedurally generated 3D maze rendered in the browser with a custom raycasting engine, smooth collision-aware movement, mouse look, touch controls, and a live minimap.",
+    highlights: ["New maze every run", "Desktop + mobile controls", "Timer and step tracking"],
+    tags: ["React", "Canvas API", "Raycasting", "Procedural generation"],
+    repository: "https://github.com/abhuraya/developer-portfolio",
+    visual: "maze",
+    playable: true,
   },
 ];
 
@@ -265,6 +280,92 @@ function ProjectVisual({ type }) {
     );
   }
 
+  if (type === "maze") {
+    return (
+      <Box
+        aria-hidden="true"
+        position="relative"
+        minH="245px"
+        overflow="hidden"
+        bg="#142019"
+      >
+        <Box
+          position="absolute"
+          inset="0"
+          bg="linear-gradient(180deg, #1d3427 0%, #142019 47%, #0b100d 48%, #20251f 100%)"
+        />
+        <Box
+          position="absolute"
+          left="50%"
+          bottom="-8%"
+          w="120%"
+          h="62%"
+          transform="translateX(-50%) perspective(430px) rotateX(62deg)"
+          transformOrigin="bottom"
+          opacity="0.5"
+          backgroundImage="linear-gradient(rgba(217,239,173,.32) 1px, transparent 1px), linear-gradient(90deg, rgba(217,239,173,.24) 1px, transparent 1px)"
+          backgroundSize="38px 38px"
+        />
+        <Box
+          position="absolute"
+          left="0"
+          top="9%"
+          w="38%"
+          h="78%"
+          bg="linear-gradient(90deg, #526f57, #8da584)"
+          clipPath="polygon(0 0, 100% 27%, 100% 73%, 0 100%)"
+          boxShadow="inset -14px 0 26px rgba(0,0,0,.18)"
+        />
+        <Box
+          position="absolute"
+          right="0"
+          top="9%"
+          w="38%"
+          h="78%"
+          bg="linear-gradient(270deg, #405c47, #799376)"
+          clipPath="polygon(0 27%, 100% 0, 100% 100%, 0 73%)"
+          boxShadow="inset 14px 0 26px rgba(0,0,0,.18)"
+        />
+        <Flex
+          position="absolute"
+          left="50%"
+          top="50%"
+          w="42px"
+          h="96px"
+          align="center"
+          justify="center"
+          transform="translate(-50%, -38%)"
+          bg={colors.lime}
+          color={colors.ink}
+          fontSize="9px"
+          fontWeight="900"
+          letterSpacing="0.08em"
+          boxShadow="0 0 18px 5px rgba(217,239,173,.54)"
+        >
+          EXIT
+        </Flex>
+        <HStack
+          position="absolute"
+          left="5"
+          bottom="5"
+          gap="2"
+          px="3"
+          py="2"
+          border="1px solid rgba(255,255,255,.14)"
+          borderRadius="full"
+          bg="rgba(8,14,10,.62)"
+          color="white"
+          fontSize="xs"
+          fontWeight="800"
+          backdropFilter="blur(8px)"
+        >
+          <Play size={13} fill="currentColor" />
+          <Text>PLAY IN BROWSER</Text>
+        </HStack>
+      </Box>
+    );
+  }
+
   return (
     <Flex
       aria-hidden="true"
@@ -321,7 +422,7 @@ function ProjectVisual({ type }) {
   );
 }
 
-function ProjectCard({ project }) {
+function ProjectCard({ project, onPlayMaze }) {
   return (
     <Grid
       as="article"
@@ -389,21 +490,40 @@ function ProjectCard({ project }) {
         </Flex>
 
         <HStack pt="2" gap="5" flexWrap="wrap">
-          <Link
-            href={project.live}
-            target="_blank"
-            rel="noreferrer"
-            color={colors.forest}
-            fontWeight="800"
-            textDecoration="none"
-            _hover={{ color: colors.rust }}
-            _focusVisible={{ outline: `3px solid ${colors.lime}`, outlineOffset: "3px" }}
-          >
-            <HStack gap="2">
-              <Text>Visit live app</Text>
-              <ArrowUpRight size={17} />
-            </HStack>
-          </Link>
+          {project.playable ? (
+            <Button
+              h="11"
+              px="5"
+              borderRadius="full"
+              bg={colors.forest}
+              color="white"
+              fontWeight="800"
+              _hover={{ bg: "#243b2b", transform: "translateY(-1px)" }}
+              _focusVisible={{ outline: `3px solid ${colors.lime}`, outlineOffset: "3px" }}
+              onClick={onPlayMaze}
+            >
+              <HStack gap="2">
+                <Play size={16} fill="currentColor" />
+                <Text>Play maze</Text>
+              </HStack>
+            </Button>
+          ) : (
+            <Link
+              href={project.live}
+              target="_blank"
+              rel="noreferrer"
+              color={colors.forest}
+              fontWeight="800"
+              textDecoration="none"
+              _hover={{ color: colors.rust }}
+              _focusVisible={{ outline: `3px solid ${colors.lime}`, outlineOffset: "3px" }}
+            >
+              <HStack gap="2">
+                <Text>Visit live app</Text>
+                <ArrowUpRight size={17} />
+              </HStack>
+            </Link>
+          )}
           <Link
             href={project.repository}
             target="_blank"
@@ -426,6 +546,8 @@ function ProjectCard({ project }) {
 }
 
 function App() {
+  const [mazeOpen, setMazeOpen] = useState(false);
+
   return (
     <Box minH="100vh" color={colors.ink}>
       <Box
@@ -648,7 +770,11 @@ function App() {
 
             <SimpleGrid columns={{ base: 1, lg: 2 }} gap="6">
               {projects.map((project) => (
-                <ProjectCard key={project.title} project={project} />
+                <ProjectCard
+                  key={project.title}
+                  project={project}
+                  onPlayMaze={() => setMazeOpen(true)}
+                />
               ))}
             </SimpleGrid>
           </Container>
@@ -735,6 +861,8 @@ function App() {
           </Flex>
         </Container>
       </Box>
+
+      {mazeOpen && <MazeGame onClose={() => setMazeOpen(false)} />}
     </Box>
   );
 }
