@@ -217,6 +217,31 @@ function drawScene(canvas, maze, player) {
   context.fillStyle = sky;
   context.fillRect(0, 0, width, horizon);
 
+  // Soft cloud banks break up the open blue sky above the corn rows.
+  context.save();
+  context.globalAlpha = 0.62;
+  for (const [centerX, centerY, scale] of [
+    [0.16, 0.28, 1],
+    [0.53, 0.17, 0.78],
+    [0.84, 0.36, 0.92],
+  ]) {
+    const cloudX = width * centerX;
+    const cloudY = horizon * centerY;
+    const cloudWidth = width * 0.105 * scale;
+    const cloudHeight = horizon * 0.12 * scale;
+    const cloudFill = context.createLinearGradient(0, cloudY - cloudHeight, 0, cloudY + cloudHeight);
+    cloudFill.addColorStop(0, "rgba(255,255,255,0.86)");
+    cloudFill.addColorStop(0.7, "rgba(255,255,255,0.72)");
+    cloudFill.addColorStop(1, "rgba(235,240,231,0.12)");
+    context.fillStyle = cloudFill;
+    context.beginPath();
+    context.ellipse(cloudX, cloudY, cloudWidth, cloudHeight * 0.55, 0, 0, Math.PI * 2);
+    context.ellipse(cloudX - cloudWidth * 0.42, cloudY + cloudHeight * 0.02, cloudWidth * 0.52, cloudHeight * 0.42, 0, 0, Math.PI * 2);
+    context.ellipse(cloudX + cloudWidth * 0.38, cloudY - cloudHeight * 0.12, cloudWidth * 0.58, cloudHeight * 0.5, 0, 0, Math.PI * 2);
+    context.fill();
+  }
+  context.restore();
+
   const floor = context.createLinearGradient(0, horizon, 0, height);
   floor.addColorStop(0, "#9b8052");
   floor.addColorStop(0.35, "#705536");
@@ -276,7 +301,14 @@ function drawScene(canvas, maze, player) {
       height * 1.8,
       (height * 0.84) / correctedDistance,
     );
-    const wallTop = horizon - wallHeight / 2;
+    const canopyOffset = pixelRatio * (
+      Math.sin((x / pixelRatio) * 0.035) * 10 +
+      Math.sin((x / pixelRatio) * 0.083) * 5 +
+      Math.sin((x / pixelRatio) * 0.19) * 2
+    );
+    const wallBottom = horizon + wallHeight / 2;
+    const wallTop = horizon - wallHeight / 2 + canopyOffset;
+    const visibleWallHeight = wallBottom - wallTop;
     const depthShade = Math.max(0.2, 1 - correctedDistance / 18);
     const sideShade = hit.side === 1 ? 0.76 : 1;
     const shade = depthShade * sideShade;
@@ -285,10 +317,10 @@ function drawScene(canvas, maze, player) {
     const blue = Math.round(161 * shade);
 
     context.fillStyle = `rgb(${red}, ${green}, ${blue})`;
-    context.fillRect(x, wallTop, stripWidth + 1, wallHeight);
+    context.fillRect(x, wallTop, stripWidth + 1, visibleWallHeight);
     context.fillStyle = `rgba(255, 236, 157, ${0.1 * depthShade})`;
     context.fillRect(x, wallTop, Math.max(1, pixelRatio), wallHeight);
-    depthBuffer.push({ x, distance: correctedDistance, wallTop, wallHeight, shade });
+    depthBuffer.push({ x, distance: correctedDistance, wallTop, wallHeight: visibleWallHeight, shade });
   }
 
   // Model neighboring corn plants along the wall with ribbed stalks,
