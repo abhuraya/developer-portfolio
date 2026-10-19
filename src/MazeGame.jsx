@@ -325,7 +325,7 @@ function drawScene(canvas, maze, player) {
 
   // Model neighboring corn plants along the wall with ribbed stalks,
   // broad tapered leaves, and occasional golden ears tucked in husks.
-  for (let index = 0; index < depthBuffer.length; index += Math.max(8, Math.floor(46 / stripWidth))) {
+  for (let index = 0; index < depthBuffer.length; index += Math.max(5, Math.floor(24 / stripWidth))) {
     const column = depthBuffer[index];
     const stalkX = column.x + stripWidth * 0.5;
     const plantScale = Math.max(0.42, Math.min(1.25, column.wallHeight / (height * 0.82)));
@@ -350,10 +350,10 @@ function drawScene(canvas, maze, player) {
     context.quadraticCurveTo(stalkX - bend * 0.4, (plantTop + plantBottom) / 2, stalkX, plantTop);
     context.stroke();
 
-    for (let leaf = 0; leaf < 4; leaf += 1) {
-      const leafY = plantTop + column.wallHeight * (0.38 + leaf * 0.14);
+    for (let leaf = 0; leaf < 6; leaf += 1) {
+      const leafY = plantTop + column.wallHeight * (0.2 + leaf * 0.115);
       const side = (leaf + index) % 2 === 0 ? 1 : -1;
-      const reach = stalkWidth * (2.8 + ((leaf + index) % 3) * 0.65);
+      const reach = stalkWidth * (3.8 + ((leaf + index) % 3) * 0.9);
       const tipX = stalkX + side * reach;
       const tipY = leafY - column.wallHeight * (0.1 + (leaf % 2) * 0.025);
       context.beginPath();
@@ -361,9 +361,11 @@ function drawScene(canvas, maze, player) {
       context.quadraticCurveTo(stalkX + side * reach * 0.28, leafY - column.wallHeight * 0.12, tipX, tipY);
       context.quadraticCurveTo(stalkX + side * reach * 0.48, leafY + column.wallHeight * 0.045, stalkX + side * stalkWidth * 0.45, leafY + column.wallHeight * 0.035);
       context.closePath();
-      context.fillStyle = leaf % 2 === 0
-        ? `rgba(77, 119, 47, ${0.88 * column.shade})`
-        : `rgba(145, 155, 65, ${0.8 * column.shade})`;
+      context.fillStyle = leaf % 3 === 0
+        ? `rgba(47, 101, 42, ${0.92 * column.shade})`
+        : leaf % 3 === 1
+          ? `rgba(91, 137, 48, ${0.9 * column.shade})`
+          : `rgba(153, 160, 67, ${0.82 * column.shade})`;
       context.fill();
       context.strokeStyle = `rgba(204, 196, 112, ${0.42 * column.shade})`;
       context.lineWidth = Math.max(1, pixelRatio * plantScale);
@@ -373,7 +375,7 @@ function drawScene(canvas, maze, player) {
       context.stroke();
     }
 
-    if (index % 3 === 0) {
+    if (index % 9 === 0) {
       const earY = plantTop + column.wallHeight * 0.62;
       const earX = stalkX + stalkWidth * 0.55;
       context.save();
