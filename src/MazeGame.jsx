@@ -206,6 +206,78 @@ function resizeCanvas(canvas) {
   return { width, height, pixelRatio };
 }
 
+let hedgeTexture;
+
+function getHedgeTexture() {
+  if (hedgeTexture) return hedgeTexture;
+
+  const texture = document.createElement("canvas");
+  texture.width = 384;
+  texture.height = 512;
+  const textureContext = texture.getContext("2d");
+  const base = textureContext.createLinearGradient(0, 0, texture.width, 0);
+  base.addColorStop(0, "#173a22");
+  base.addColorStop(0.48, "#28552e");
+  base.addColorStop(1, "#173a22");
+  textureContext.fillStyle = base;
+  textureContext.fillRect(0, 0, texture.width, texture.height);
+
+  const random = mulberry32(941);
+  const leafTones = ["#1c4728", "#285d32", "#39713c", "#4b8043", "#65904b"];
+
+  // Bake the detailed foliage once; each frame only scales this cached canvas.
+  for (let band = 0; band < 11; band += 1) {
+    const centerY = ((band + 0.5) / 11) * texture.height;
+    for (let leaf = 0; leaf < 11; leaf += 1) {
+      const centerX = (leaf / 10) * texture.width + (random() - 0.5) * 34;
+      const radiusX = 22 + random() * 26;
+      const radiusY = 8 + random() * 13;
+      const angle = (random() - 0.5) * 0.85;
+      const tone = leafTones[Math.floor(random() * leafTones.length)];
+
+      textureContext.save();
+      textureContext.translate(centerX, centerY + (random() - 0.5) * 28);
+      textureContext.rotate(angle);
+      const fill = textureContext.createRadialGradient(
+        -radiusX * 0.3,
+        -radiusY * 0.35,
+        1,
+        0,
+        0,
+        radiusX,
+      );
+      fill.addColorStop(0, tone);
+      fill.addColorStop(1, "#173b24");
+      textureContext.fillStyle = fill;
+      textureContext.beginPath();
+      textureContext.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
+      textureContext.fill();
+
+      textureContext.strokeStyle = "rgba(163, 190, 104, 0.4)";
+      textureContext.lineWidth = 1.5;
+      textureContext.beginPath();
+      textureContext.moveTo(-radiusX * 0.78, 0);
+      textureContext.quadraticCurveTo(0, -radiusY * 0.12, radiusX * 0.8, 0);
+      textureContext.stroke();
+      textureContext.restore();
+    }
+  }
+
+  textureContext.strokeStyle = "rgba(77, 67, 40, 0.72)";
+  textureContext.lineWidth = 8;
+  textureContext.beginPath();
+  textureContext.moveTo(92, texture.height);
+  textureContext.quadraticCurveTo(180, 250, 148, 0);
+  textureContext.moveTo(236, texture.height);
+  textureContext.quadraticCurveTo(185, 260, 355, 72);
+  textureContext.moveTo(192, 370);
+  textureContext.quadraticCurveTo(80, 285, 0, 225);
+  textureContext.stroke();
+
+  hedgeTexture = texture;
+  return hedgeTexture;
+}
+
 function drawScene(canvas, maze, player) {
   const context = canvas.getContext("2d");
   const { width, height, pixelRatio } = resizeCanvas(canvas);
@@ -323,65 +395,26 @@ function drawScene(canvas, maze, player) {
     depthBuffer.push({ x, distance: correctedDistance, wallTop, wallHeight: visibleWallHeight, shade });
   }
 
-  // Layer clipped, overlapping hedge clusters over the raycast wall surface.
+  // Reuse the pre-rendered foliage texture instead of rebuilding leaf gradients every frame.
+  const foliage = getHedgeTexture();
   for (let index = 0; index < depthBuffer.length; index += Math.max(6, Math.floor(30 / stripWidth))) {
     const column = depthBuffer[index];
     const centerX = column.x + stripWidth * 0.5;
     const hedgeScale = Math.max(0.48, Math.min(1.35, column.wallHeight / (height * 0.78)));
     const clusterWidth = Math.max(13 * pixelRatio, 35 * pixelRatio * hedgeScale);
-    const leafBands = 7;
-    const leafTones = ["#1c4728", "#285d32", "#39713c", "#4b8043", "#65904b"];
 
     context.save();
     context.beginPath();
     context.rect(centerX - clusterWidth * 2.3, column.wallTop, clusterWidth * 4.6, column.wallHeight);
     context.clip();
-
-    // A few dark branches show through the leafy surface.
-    context.strokeStyle = `rgba(77, 67, 40, ${0.42 * column.shade})`;
-    context.lineWidth = Math.max(2 * pixelRatio, clusterWidth * 0.12);
-    context.beginPath();
-    context.moveTo(centerX - clusterWidth * 0.18, column.wallTop + column.wallHeight);
-    context.quadraticCurveTo(centerX + clusterWidth * 0.34, column.wallTop + column.wallHeight * 0.52, centerX - clusterWidth * 0.1, column.wallTop);
-    context.moveTo(centerX + clusterWidth * 0.05, column.wallTop + column.wallHeight * 0.72);
-    context.quadraticCurveTo(centerX - clusterWidth * 0.62, column.wallTop + column.wallHeight * 0.42, centerX - clusterWidth, column.wallTop + column.wallHeight * 0.3);
-    context.moveTo(centerX, column.wallTop + column.wallHeight * 0.58);
-    context.quadraticCurveTo(centerX + clusterWidth * 0.72, column.wallTop + column.wallHeight * 0.38, centerX + clusterWidth * 1.12, column.wallTop + column.wallHeight * 0.16);
-    context.stroke();
-
-    for (let band = 0; band < leafBands; band += 1) {
-      const verticalProgress = (band + 0.5) / leafBands;
-      const leafY = column.wallTop + column.wallHeight * verticalProgress;
-      const clusterOffset = ((index * 7 + band * 11) % 9 - 4) * pixelRatio * hedgeScale;
-      const leafHeight = Math.max(4 * pixelRatio, column.wallHeight * (0.038 + ((index + band) % 3) * 0.008));
-      for (let leaf = 0; leaf < 5; leaf += 1) {
-        const spread = (leaf - 2) * clusterWidth * 0.43;
-        const leafX = centerX + spread + clusterOffset;
-        const variation = ((index * 13 + band * 7 + leaf * 5) % 7) / 10;
-        const radiusX = clusterWidth * (0.28 + variation * 0.14);
-        const radiusY = leafHeight * (0.68 + variation * 0.22);
-        const angle = ((index + band + leaf) % 5 - 2) * 0.13;
-        const tone = leafTones[(index + band * 2 + leaf * 3) % leafTones.length];
-        context.save();
-        context.translate(leafX, leafY + ((leaf % 3) - 1) * leafHeight * 0.32);
-        context.rotate(angle);
-        const leafFill = context.createRadialGradient(-radiusX * 0.3, -radiusY * 0.35, 1, 0, 0, radiusX);
-        leafFill.addColorStop(0, tone);
-        leafFill.addColorStop(1, "#173b24");
-        context.fillStyle = leafFill;
-        context.beginPath();
-        context.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
-        context.fill();
-
-        context.strokeStyle = `rgba(163, 190, 104, ${0.32 * column.shade})`;
-        context.lineWidth = Math.max(0.8 * pixelRatio, radiusY * 0.08);
-        context.beginPath();
-        context.moveTo(-radiusX * 0.78, 0);
-        context.quadraticCurveTo(0, -radiusY * 0.12, radiusX * 0.8, 0);
-        context.stroke();
-        context.restore();
-      }
-    }
+    context.globalAlpha = column.shade;
+    context.drawImage(
+      foliage,
+      centerX - clusterWidth * 2.3,
+      column.wallTop,
+      clusterWidth * 4.6,
+      column.wallHeight,
+    );
     context.restore();
   }
 
