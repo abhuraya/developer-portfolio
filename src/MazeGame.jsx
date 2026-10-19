@@ -722,7 +722,7 @@ function MazeGame({ onClose }) {
       >
         <Stack gap="0" color="white" textShadow="0 2px 12px rgba(0,0,0,.46)">
           <Text fontSize={{ base: "md", md: "xl" }} fontWeight="900" letterSpacing="-0.03em">
-            Corn Maze
+            Maze
           </Text>
           <Text display={{ base: "none", sm: "block" }} color="rgba(255,255,255,.62)" fontSize="xs" fontWeight="700">
             Find the glowing exit
