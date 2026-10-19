@@ -83,7 +83,7 @@ const projects = [
     title: "The Verdant Maze",
     type: "Playable first-person experiment",
     description:
-      "A procedurally generated 3D maze rendered in the browser with a custom raycasting engine, smooth collision-aware movement, mouse look, touch controls, and a live minimap.",
+      "A procedurally generated first-person cornfield maze with a custom raycasting engine, leafy stalk walls, open sky, smooth movement, and a directional exit indicator.",
     highlights: ["New maze every run", "Desktop + mobile controls", "Timer and step tracking"],
     tags: ["React", "Canvas API", "Raycasting", "Procedural generation"],
     repository: "https://github.com/abhuraya/developer-portfolio",
