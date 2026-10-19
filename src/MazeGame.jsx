@@ -312,86 +312,75 @@ function drawScene(canvas, maze, player) {
     const depthShade = Math.max(0.2, 1 - correctedDistance / 18);
     const sideShade = hit.side === 1 ? 0.76 : 1;
     const shade = depthShade * sideShade;
-    const red = Math.round(180 * shade);
-    const green = Math.round(204 * shade);
-    const blue = Math.round(161 * shade);
+    const red = Math.round(48 * shade);
+    const green = Math.round(103 * shade);
+    const blue = Math.round(51 * shade);
 
     context.fillStyle = `rgb(${red}, ${green}, ${blue})`;
     context.fillRect(x, wallTop, stripWidth + 1, visibleWallHeight);
-    context.fillStyle = `rgba(255, 236, 157, ${0.1 * depthShade})`;
-    context.fillRect(x, wallTop, Math.max(1, pixelRatio), wallHeight);
+    context.fillStyle = `rgba(169, 207, 120, ${0.11 * depthShade})`;
+    context.fillRect(x, wallTop, Math.max(1, pixelRatio), visibleWallHeight);
     depthBuffer.push({ x, distance: correctedDistance, wallTop, wallHeight: visibleWallHeight, shade });
   }
 
-  // Model neighboring corn plants along the wall with ribbed stalks,
-  // broad tapered leaves, and occasional golden ears tucked in husks.
-  for (let index = 0; index < depthBuffer.length; index += Math.max(5, Math.floor(24 / stripWidth))) {
+  // Layer clipped, overlapping hedge clusters over the raycast wall surface.
+  for (let index = 0; index < depthBuffer.length; index += Math.max(6, Math.floor(30 / stripWidth))) {
     const column = depthBuffer[index];
-    const stalkX = column.x + stripWidth * 0.5;
-    const plantScale = Math.max(0.42, Math.min(1.25, column.wallHeight / (height * 0.82)));
-    const stalkWidth = Math.max(5 * pixelRatio, 12 * pixelRatio * plantScale);
-    const plantTop = column.wallTop + column.wallHeight * 0.06;
-    const plantBottom = column.wallTop + column.wallHeight * 1.04;
-    const bend = ((index * 17) % 9 - 4) * pixelRatio * plantScale;
+    const centerX = column.x + stripWidth * 0.5;
+    const hedgeScale = Math.max(0.48, Math.min(1.35, column.wallHeight / (height * 0.78)));
+    const clusterWidth = Math.max(13 * pixelRatio, 35 * pixelRatio * hedgeScale);
+    const leafBands = 7;
+    const leafTones = ["#1c4728", "#285d32", "#39713c", "#4b8043", "#65904b"];
+
     context.save();
     context.beginPath();
-    context.rect(stalkX - stalkWidth * 7, column.wallTop, stalkWidth * 14, column.wallHeight);
+    context.rect(centerX - clusterWidth * 2.3, column.wallTop, clusterWidth * 4.6, column.wallHeight);
     context.clip();
 
-    const stem = context.createLinearGradient(stalkX - stalkWidth, 0, stalkX + stalkWidth, 0);
-    stem.addColorStop(0, `rgba(42, 84, 39, ${0.9 * column.shade})`);
-    stem.addColorStop(0.45, `rgba(132, 157, 65, ${0.92 * column.shade})`);
-    stem.addColorStop(0.72, `rgba(178, 170, 79, ${0.82 * column.shade})`);
-    stem.addColorStop(1, `rgba(48, 91, 39, ${0.9 * column.shade})`);
-    context.strokeStyle = stem;
-    context.lineWidth = stalkWidth;
+    // A few dark branches show through the leafy surface.
+    context.strokeStyle = `rgba(77, 67, 40, ${0.42 * column.shade})`;
+    context.lineWidth = Math.max(2 * pixelRatio, clusterWidth * 0.12);
     context.beginPath();
-    context.moveTo(stalkX + bend, plantBottom);
-    context.quadraticCurveTo(stalkX - bend * 0.4, (plantTop + plantBottom) / 2, stalkX, plantTop);
+    context.moveTo(centerX - clusterWidth * 0.18, column.wallTop + column.wallHeight);
+    context.quadraticCurveTo(centerX + clusterWidth * 0.34, column.wallTop + column.wallHeight * 0.52, centerX - clusterWidth * 0.1, column.wallTop);
+    context.moveTo(centerX + clusterWidth * 0.05, column.wallTop + column.wallHeight * 0.72);
+    context.quadraticCurveTo(centerX - clusterWidth * 0.62, column.wallTop + column.wallHeight * 0.42, centerX - clusterWidth, column.wallTop + column.wallHeight * 0.3);
+    context.moveTo(centerX, column.wallTop + column.wallHeight * 0.58);
+    context.quadraticCurveTo(centerX + clusterWidth * 0.72, column.wallTop + column.wallHeight * 0.38, centerX + clusterWidth * 1.12, column.wallTop + column.wallHeight * 0.16);
     context.stroke();
 
-    for (let leaf = 0; leaf < 6; leaf += 1) {
-      const leafY = plantTop + column.wallHeight * (0.2 + leaf * 0.115);
-      const side = (leaf + index) % 2 === 0 ? 1 : -1;
-      const reach = stalkWidth * (3.8 + ((leaf + index) % 3) * 0.9);
-      const tipX = stalkX + side * reach;
-      const tipY = leafY - column.wallHeight * (0.1 + (leaf % 2) * 0.025);
-      context.beginPath();
-      context.moveTo(stalkX, leafY);
-      context.quadraticCurveTo(stalkX + side * reach * 0.28, leafY - column.wallHeight * 0.12, tipX, tipY);
-      context.quadraticCurveTo(stalkX + side * reach * 0.48, leafY + column.wallHeight * 0.045, stalkX + side * stalkWidth * 0.45, leafY + column.wallHeight * 0.035);
-      context.closePath();
-      context.fillStyle = leaf % 3 === 0
-        ? `rgba(47, 101, 42, ${0.92 * column.shade})`
-        : leaf % 3 === 1
-          ? `rgba(91, 137, 48, ${0.9 * column.shade})`
-          : `rgba(153, 160, 67, ${0.82 * column.shade})`;
-      context.fill();
-      context.strokeStyle = `rgba(204, 196, 112, ${0.42 * column.shade})`;
-      context.lineWidth = Math.max(1, pixelRatio * plantScale);
-      context.beginPath();
-      context.moveTo(stalkX, leafY + column.wallHeight * 0.02);
-      context.quadraticCurveTo(stalkX + side * reach * 0.36, leafY - column.wallHeight * 0.035, tipX * 0.96 + stalkX * 0.04, tipY + column.wallHeight * 0.025);
-      context.stroke();
-    }
+    for (let band = 0; band < leafBands; band += 1) {
+      const verticalProgress = (band + 0.5) / leafBands;
+      const leafY = column.wallTop + column.wallHeight * verticalProgress;
+      const clusterOffset = ((index * 7 + band * 11) % 9 - 4) * pixelRatio * hedgeScale;
+      const leafHeight = Math.max(4 * pixelRatio, column.wallHeight * (0.038 + ((index + band) % 3) * 0.008));
+      for (let leaf = 0; leaf < 5; leaf += 1) {
+        const spread = (leaf - 2) * clusterWidth * 0.43;
+        const leafX = centerX + spread + clusterOffset;
+        const variation = ((index * 13 + band * 7 + leaf * 5) % 7) / 10;
+        const radiusX = clusterWidth * (0.28 + variation * 0.14);
+        const radiusY = leafHeight * (0.68 + variation * 0.22);
+        const angle = ((index + band + leaf) % 5 - 2) * 0.13;
+        const tone = leafTones[(index + band * 2 + leaf * 3) % leafTones.length];
+        context.save();
+        context.translate(leafX, leafY + ((leaf % 3) - 1) * leafHeight * 0.32);
+        context.rotate(angle);
+        const leafFill = context.createRadialGradient(-radiusX * 0.3, -radiusY * 0.35, 1, 0, 0, radiusX);
+        leafFill.addColorStop(0, tone);
+        leafFill.addColorStop(1, "#173b24");
+        context.fillStyle = leafFill;
+        context.beginPath();
+        context.ellipse(0, 0, radiusX, radiusY, 0, 0, Math.PI * 2);
+        context.fill();
 
-    if (index % 9 === 0) {
-      const earY = plantTop + column.wallHeight * 0.62;
-      const earX = stalkX + stalkWidth * 0.55;
-      context.save();
-      context.translate(earX, earY);
-      context.rotate(-0.16);
-      context.fillStyle = `rgba(218, 184, 79, ${0.9 * column.shade})`;
-      context.beginPath();
-      context.ellipse(0, 0, stalkWidth * 0.58, column.wallHeight * 0.055, 0, 0, Math.PI * 2);
-      context.fill();
-      context.strokeStyle = `rgba(116, 135, 55, ${0.9 * column.shade})`;
-      context.lineWidth = stalkWidth * 0.48;
-      context.beginPath();
-      context.moveTo(-stalkWidth * 0.2, column.wallHeight * 0.06);
-      context.quadraticCurveTo(stalkWidth, column.wallHeight * 0.035, stalkWidth * 0.3, -column.wallHeight * 0.04);
-      context.stroke();
-      context.restore();
+        context.strokeStyle = `rgba(163, 190, 104, ${0.32 * column.shade})`;
+        context.lineWidth = Math.max(0.8 * pixelRatio, radiusY * 0.08);
+        context.beginPath();
+        context.moveTo(-radiusX * 0.78, 0);
+        context.quadraticCurveTo(0, -radiusY * 0.12, radiusX * 0.8, 0);
+        context.stroke();
+        context.restore();
+      }
     }
     context.restore();
   }
