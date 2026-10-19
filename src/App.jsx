@@ -190,6 +190,94 @@ function LinkButton({ href, children, primary = false }) {
   );
 }
 
+function ProfilePhotoSlot() {
+  const [photoMissing, setPhotoMissing] = useState(false);
+
+  return (
+    <Box
+      position="relative"
+      minH={{ base: "280px", lg: "330px" }}
+      overflow="hidden"
+      border="1px solid"
+      borderColor={colors.line}
+      borderRadius="3xl"
+      bg="linear-gradient(145deg, #dbe8d2 0%, #a7c28f 48%, #e4d4ae 100%)"
+      boxShadow="0 18px 45px rgba(29, 33, 28, 0.1)"
+      aria-label="Portrait photo area"
+    >
+      {!photoMissing && (
+        <Box
+          as="img"
+          src="/profile.jpg"
+          alt="Abhudaya Rayamajhi"
+          position="absolute"
+          inset="0"
+          w="100%"
+          h="100%"
+          objectFit="cover"
+          onError={() => setPhotoMissing(true)}
+        />
+      )}
+      {photoMissing && (
+        <Flex position="absolute" inset="0" direction="column" align="center" justify="center" gap="4" color={colors.forest}>
+          <Box position="relative" w="24" h="24" borderRadius="full" bg="rgba(255,253,248,.72)" boxShadow="0 12px 28px rgba(49,75,56,.14)">
+            <Box position="absolute" top="22%" left="50%" w="30%" h="30%" transform="translateX(-50%)" borderRadius="full" bg="#a6b89a" />
+            <Box position="absolute" bottom="13%" left="50%" w="58%" h="38%" transform="translateX(-50%)" borderRadius="50% 50% 35% 35%" bg="#a6b89a" />
+          </Box>
+          <Box textAlign="center" px="4">
+            <Text fontSize="sm" fontWeight="900" letterSpacing="0.12em">YOUR PHOTO</Text>
+            <Text mt="1" color={colors.muted} fontSize="xs">Add public/profile.jpg to personalize this space</Text>
+          </Box>
+        </Flex>
+      )}
+      {!photoMissing && (
+        <Badge position="absolute" left="4" bottom="4" px="3" py="1.5" borderRadius="full" bg="rgba(29,33,28,.62)" color="white" backdropFilter="blur(8px)">
+          ABHUDAYA RAYAMAJHI
+        </Badge>
+      )}
+    </Box>
+  );
+}
+
+function CornMazeCardVisual() {
+  const plants = Array.from({ length: 8 }, (_, index) => index);
+
+  return (
+    <Box aria-hidden="true" position="relative" minH="245px" overflow="hidden" bg="#8fcbe1" isolation="isolate">
+      <style>{`
+        @keyframes card-cloud-drift { from { transform: translateX(-7px); } to { transform: translateX(12px); } }
+        @keyframes card-leaf-sway { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(2deg); } }
+        @media (prefers-reduced-motion: reduce) { .card-cloud, .card-plant { animation: none !important; } }
+      `}</style>
+      <Box position="absolute" inset="0" bg="linear-gradient(180deg, #68b8df 0%, #b8e1e9 48%, #f3dfaa 58%, #748d49 59%, #34442d 100%)" />
+      <Box position="absolute" top="12%" right="18%" w="42px" h="42px" borderRadius="full" bg="#fff4c4" boxShadow="0 0 35px 12px rgba(255,244,196,.35)" />
+      {[["12%", "20%"], ["57%", "16%"], ["80%", "30%"]].map(([left, top], index) => (
+        <Box key={left} className="card-cloud" position="absolute" left={left} top={top} w="92px" h="25px" borderRadius="full" bg="rgba(255,255,255,.76)" filter="blur(1px)" animation={`card-cloud-drift ${6 + index * 2}s ease-in-out infinite alternate`}>
+          <Box position="absolute" left="18%" top="-40%" w="42%" h="90%" borderRadius="full" bg="inherit" />
+          <Box position="absolute" right="14%" top="-25%" w="38%" h="76%" borderRadius="full" bg="inherit" />
+        </Box>
+      ))}
+      <Box position="absolute" left="50%" top="57%" w="100%" h="48%" transform="translateX(-50%)" clipPath="polygon(48% 0, 52% 0, 100% 100%, 0 100%)" bg="linear-gradient(180deg, #b89a61 0%, #82613b 55%, #57422e 100%)" />
+      <Box position="absolute" left="50%" top="58%" w="76%" h="44%" transform="translateX(-50%)" clipPath="polygon(49% 0, 51% 0, 100% 100%, 0 100%)" opacity=".4" backgroundImage="repeating-linear-gradient(176deg, transparent 0 17px, rgba(47,34,22,.38) 18px 20px)" />
+      {[{ side: "left", reverse: false }, { side: "right", reverse: true }].map(({ side, reverse }) => (
+        <Box key={side} position="absolute" inset="0">
+          {plants.map((index) => (
+            <Box key={index} className="card-plant" position="absolute" bottom="-8%" left={reverse ? undefined : `${index * 12 - 12}%`} right={reverse ? `${index * 12 - 12}%` : undefined} w={`${12 + index * 1.6}%`} h={`${48 + index * 5}%`} zIndex={index + 1} animation={`card-leaf-sway ${3 + index % 3}s ease-in-out infinite`} style={{ animationDelay: `${index * -0.3}s` }}>
+              <Box position="absolute" left="45%" top="0" w="14%" h="100%" borderRadius="full" bg="linear-gradient(90deg, #385c2e, #a1a54f 48%, #4c7334)" />
+              {[0, 1, 2, 3, 4].map((leaf) => (
+                <Box key={leaf} position="absolute" left={leaf % 2 ? "42%" : "48%"} top={`${14 + leaf * 16}%`} w="65%" h="20%" transformOrigin="left center" transform={`rotate(${leaf % 2 ? 30 : -34}deg)`} clipPath="polygon(0 45%, 36% 12%, 100% 0, 72% 55%, 100% 100%, 34% 76%)" bg={leaf % 3 === 0 ? "#557b36" : leaf % 3 === 1 ? "#759341" : "#a0a151"} />
+              ))}
+            </Box>
+          ))}
+        </Box>
+      ))}
+      <Box position="absolute" left="50%" top="50%" w="2px" h="14px" transform="translate(-50%, -50%)" bg="rgba(255,255,255,.88)" boxShadow="0 0 8px rgba(255,255,255,.9)" />
+      <Box position="absolute" left="50%" top="50%" w="14px" h="2px" transform="translate(-50%, -50%)" bg="rgba(255,255,255,.88)" boxShadow="0 0 8px rgba(255,255,255,.9)" />
+      <Badge position="absolute" top="4" left="4" px="3" py="1.5" borderRadius="full" bg="rgba(22,42,29,.58)" color="white" backdropFilter="blur(8px)">CORN MAZE · FIRST PERSON</Badge>
+    </Box>
+  );
+}
+
 function ProjectVisual({ type }) {
   if (type === "dumplings") {
     return (
@@ -422,89 +510,7 @@ function ProjectVisual({ type }) {
   }
 
   if (type === "maze") {
-    return (
-      <Box
-        aria-hidden="true"
-        position="relative"
-        minH="245px"
-        overflow="hidden"
-        bg="#142019"
-      >
-        <Box
-          position="absolute"
-          inset="0"
-          bg="linear-gradient(180deg, #1d3427 0%, #142019 47%, #0b100d 48%, #20251f 100%)"
-        />
-        <Box
-          position="absolute"
-          left="50%"
-          bottom="-8%"
-          w="120%"
-          h="62%"
-          transform="translateX(-50%) perspective(430px) rotateX(62deg)"
-          transformOrigin="bottom"
-          opacity="0.5"
-          backgroundImage="linear-gradient(rgba(217,239,173,.32) 1px, transparent 1px), linear-gradient(90deg, rgba(217,239,173,.24) 1px, transparent 1px)"
-          backgroundSize="38px 38px"
-        />
-        <Box
-          position="absolute"
-          left="0"
-          top="9%"
-          w="38%"
-          h="78%"
-          bg="linear-gradient(90deg, #526f57, #8da584)"
-          clipPath="polygon(0 0, 100% 27%, 100% 73%, 0 100%)"
-          boxShadow="inset -14px 0 26px rgba(0,0,0,.18)"
-        />
-        <Box
-          position="absolute"
-          right="0"
-          top="9%"
-          w="38%"
-          h="78%"
-          bg="linear-gradient(270deg, #405c47, #799376)"
-          clipPath="polygon(0 27%, 100% 0, 100% 100%, 0 73%)"
-          boxShadow="inset 14px 0 26px rgba(0,0,0,.18)"
-        />
-        <Flex
-          position="absolute"
-          left="50%"
-          top="50%"
-          w="42px"
-          h="96px"
-          align="center"
-          justify="center"
-          transform="translate(-50%, -38%)"
-          bg={colors.lime}
-          color={colors.ink}
-          fontSize="9px"
-          fontWeight="900"
-          letterSpacing="0.08em"
-          boxShadow="0 0 18px 5px rgba(217,239,173,.54)"
-        >
-          EXIT
-        </Flex>
-        <HStack
-          position="absolute"
-          left="5"
-          bottom="5"
-          gap="2"
-          px="3"
-          py="2"
-          border="1px solid rgba(255,255,255,.14)"
-          borderRadius="full"
-          bg="rgba(8,14,10,.62)"
-          color="white"
-          fontSize="xs"
-          fontWeight="800"
-          backdropFilter="blur(8px)"
-        >
-          <Play size={13} fill="currentColor" />
-          <Text>PLAY IN BROWSER</Text>
-        </HStack>
-      </Box>
-    );
+    return <CornMazeCardVisual />;
   }
 
   return (
@@ -862,7 +868,7 @@ function App() {
 
         <Container id="about" maxW="1180px" px={{ base: "5", md: "8" }} py={{ base: "24", md: "32" }}>
           <SectionLabel>About</SectionLabel>
-          <SimpleGrid columns={{ base: 1, md: 2 }} gap={{ base: "10", md: "20" }}>
+          <SimpleGrid columns={{ base: 1, lg: 3 }} gap={{ base: "10", lg: "12" }} alignItems="center">
             <Heading fontSize={{ base: "4xl", md: "6xl" }} letterSpacing="-0.055em" lineHeight="1.02">
               A different perspective on building software.
             </Heading>
@@ -874,6 +880,7 @@ function App() {
                 I bring that same discipline to software: understand the real problem, keep the experience simple, and build the details to last.
               </Text>
             </Stack>
+            <ProfilePhotoSlot />
           </SimpleGrid>
 
           <SimpleGrid columns={{ base: 1, md: 3 }} gap="5" mt={{ base: "14", md: "20" }}>
