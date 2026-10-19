@@ -80,7 +80,7 @@ const projects = [
   },
   {
     number: "04",
-    title: "The Verdant Maze",
+    title: "Corn Maze",
     type: "Playable first-person experiment",
     description:
       "A procedurally generated first-person cornfield maze with a custom raycasting engine, leafy stalk walls, open sky, smooth movement, and a directional exit indicator.",
