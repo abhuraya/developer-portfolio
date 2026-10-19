@@ -240,19 +240,19 @@ function ProfilePhotoSlot() {
 }
 
 function CornMazeCardVisual() {
-  const plants = Array.from({ length: 8 }, (_, index) => index);
+  const leaves = Array.from({ length: 28 }, (_, index) => index);
+  const clouds = [["12%", "20%"], ["57%", "16%"], ["80%", "30%"]];
 
   return (
     <Box aria-hidden="true" position="relative" minH="245px" overflow="hidden" bg="#8fcbe1" isolation="isolate">
       <style>{`
-        @keyframes card-cloud-drift { from { transform: translateX(-7px); } to { transform: translateX(12px); } }
-        @keyframes card-leaf-sway { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(2deg); } }
-        @media (prefers-reduced-motion: reduce) { .card-cloud, .card-plant { animation: none !important; } }
+        @keyframes hedge-cloud-drift { from { transform: translateX(-7px); } to { transform: translateX(12px); } }
+        @media (prefers-reduced-motion: reduce) { .hedge-cloud { animation: none !important; } }
       `}</style>
       <Box position="absolute" inset="0" bg="linear-gradient(180deg, #68b8df 0%, #b8e1e9 48%, #f3dfaa 58%, #748d49 59%, #34442d 100%)" />
       <Box position="absolute" top="12%" right="18%" w="42px" h="42px" borderRadius="full" bg="#fff4c4" boxShadow="0 0 35px 12px rgba(255,244,196,.35)" />
-      {[["12%", "20%"], ["57%", "16%"], ["80%", "30%"]].map(([left, top], index) => (
-        <Box key={left} className="card-cloud" position="absolute" left={left} top={top} w="92px" h="25px" borderRadius="full" bg="rgba(255,255,255,.76)" filter="blur(1px)" animation={`card-cloud-drift ${6 + index * 2}s ease-in-out infinite alternate`}>
+      {clouds.map(([left, top], index) => (
+        <Box key={left} className="hedge-cloud" position="absolute" left={left} top={top} w="92px" h="25px" borderRadius="full" bg="rgba(255,255,255,.76)" filter="blur(1px)" animation={`hedge-cloud-drift ${6 + index * 2}s ease-in-out infinite alternate`}>
           <Box position="absolute" left="18%" top="-40%" w="42%" h="90%" borderRadius="full" bg="inherit" />
           <Box position="absolute" right="14%" top="-25%" w="38%" h="76%" borderRadius="full" bg="inherit" />
         </Box>
@@ -260,20 +260,15 @@ function CornMazeCardVisual() {
       <Box position="absolute" left="50%" top="57%" w="100%" h="48%" transform="translateX(-50%)" clipPath="polygon(48% 0, 52% 0, 100% 100%, 0 100%)" bg="linear-gradient(180deg, #b89a61 0%, #82613b 55%, #57422e 100%)" />
       <Box position="absolute" left="50%" top="58%" w="76%" h="44%" transform="translateX(-50%)" clipPath="polygon(49% 0, 51% 0, 100% 100%, 0 100%)" opacity=".4" backgroundImage="repeating-linear-gradient(176deg, transparent 0 17px, rgba(47,34,22,.38) 18px 20px)" />
       {[{ side: "left", reverse: false }, { side: "right", reverse: true }].map(({ side, reverse }) => (
-        <Box key={side} position="absolute" inset="0">
-          {plants.map((index) => (
-            <Box key={index} className="card-plant" position="absolute" bottom="-8%" left={reverse ? undefined : `${index * 12 - 12}%`} right={reverse ? `${index * 12 - 12}%` : undefined} w={`${12 + index * 1.6}%`} h={`${48 + index * 5}%`} zIndex={index + 1} animation={`card-leaf-sway ${3 + index % 3}s ease-in-out infinite`} style={{ animationDelay: `${index * -0.3}s` }}>
-              <Box position="absolute" left="45%" top="0" w="14%" h="100%" borderRadius="full" bg="linear-gradient(90deg, #385c2e, #a1a54f 48%, #4c7334)" />
-              {[0, 1, 2, 3, 4].map((leaf) => (
-                <Box key={leaf} position="absolute" left={leaf % 2 ? "42%" : "48%"} top={`${14 + leaf * 16}%`} w="65%" h="20%" transformOrigin="left center" transform={`rotate(${leaf % 2 ? 30 : -34}deg)`} clipPath="polygon(0 45%, 36% 12%, 100% 0, 72% 55%, 100% 100%, 34% 76%)" bg={leaf % 3 === 0 ? "#557b36" : leaf % 3 === 1 ? "#759341" : "#a0a151"} />
-              ))}
-            </Box>
+        <Box key={side} position="absolute" top="54%" bottom="-7%" left={reverse ? "56%" : "-8%"} right={reverse ? "-8%" : "56%"} clipPath={reverse ? "polygon(18% 0,100% 0,100% 100%,0 100%)" : "polygon(0 0,82% 0,100% 100%,0 100%)"} bg="linear-gradient(180deg, #315d34 0%, #21492b 45%, #173923 100%)" overflow="hidden">
+          {leaves.map((leaf) => (
+            <Box key={leaf} position="absolute" left={`${(leaf * 37) % 101}%`} top={`${(leaf * 53) % 106 - 3}%`} w={`${12 + (leaf % 4) * 3}%`} h={`${8 + (leaf % 3) * 2}%`} transform={`rotate(${(leaf * 47) % 70 - 35}deg)`} borderRadius="70% 30% 70% 30%" bg={["#28552f", "#376b38", "#4c7940", "#658447"][leaf % 4]} boxShadow="inset 2px 2px 4px rgba(190,210,128,.22)" opacity=".94" />
           ))}
         </Box>
       ))}
       <Box position="absolute" left="50%" top="50%" w="2px" h="14px" transform="translate(-50%, -50%)" bg="rgba(255,255,255,.88)" boxShadow="0 0 8px rgba(255,255,255,.9)" />
       <Box position="absolute" left="50%" top="50%" w="14px" h="2px" transform="translate(-50%, -50%)" bg="rgba(255,255,255,.88)" boxShadow="0 0 8px rgba(255,255,255,.9)" />
-      <Badge position="absolute" top="4" left="4" px="3" py="1.5" borderRadius="full" bg="rgba(22,42,29,.58)" color="white" backdropFilter="blur(8px)">CORN MAZE · FIRST PERSON</Badge>
+      <Badge position="absolute" top="4" left="4" px="3" py="1.5" borderRadius="full" bg="rgba(22,42,29,.58)" color="white" backdropFilter="blur(8px)">FIRST-PERSON HEDGE MAZE</Badge>
     </Box>
   );
 }
