@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box, Button, Flex, HStack, Stack, Text } from "@chakra-ui/react";
 import {
   Footprints,
-  MapPinned,
   MousePointer2,
   RefreshCw,
   Timer,
@@ -212,18 +211,19 @@ function drawScene(canvas, maze, player) {
   const { width, height, pixelRatio } = resizeCanvas(canvas);
   const horizon = height * 0.47;
   const sky = context.createLinearGradient(0, 0, 0, horizon);
-  sky.addColorStop(0, "#07110c");
-  sky.addColorStop(1, "#274434");
+  sky.addColorStop(0, "#79c9ed");
+  sky.addColorStop(0.62, "#c6e5df");
+  sky.addColorStop(1, "#f4d99a");
   context.fillStyle = sky;
   context.fillRect(0, 0, width, horizon);
 
   const floor = context.createLinearGradient(0, horizon, 0, height);
-  floor.addColorStop(0, "#32392f");
-  floor.addColorStop(1, "#0a0d0b");
+  floor.addColorStop(0, "#657747");
+  floor.addColorStop(1, "#26351f");
   context.fillStyle = floor;
   context.fillRect(0, horizon, width, height - horizon);
 
-  context.strokeStyle = "rgba(217, 239, 173, 0.08)";
+  context.strokeStyle = "rgba(255, 244, 190, 0.12)";
   context.lineWidth = Math.max(1, pixelRatio);
   for (let index = 1; index <= 8; index += 1) {
     const progress = index / 8;
@@ -259,10 +259,42 @@ function drawScene(canvas, maze, player) {
 
     context.fillStyle = `rgb(${red}, ${green}, ${blue})`;
     context.fillRect(x, wallTop, stripWidth + 1, wallHeight);
-    context.fillStyle = `rgba(247, 245, 239, ${0.08 * depthShade})`;
+    context.fillStyle = `rgba(255, 236, 157, ${0.1 * depthShade})`;
     context.fillRect(x, wallTop, Math.max(1, pixelRatio), wallHeight);
-    depthBuffer.push({ x, distance: correctedDistance });
+    depthBuffer.push({ x, distance: correctedDistance, wallTop, wallHeight, shade });
   }
+
+  // Layer repeating stalk stems and leaf blades over the raycast walls.
+  context.save();
+  for (let index = 0; index < depthBuffer.length; index += Math.max(5, Math.floor(24 / stripWidth))) {
+    const column = depthBuffer[index];
+    const stalkX = column.x + stripWidth * 0.5;
+    const stalkWidth = Math.max(2 * pixelRatio, stripWidth * 1.7);
+    context.save();
+    context.beginPath();
+    context.rect(stalkX - stalkWidth, column.wallTop, stalkWidth * 2, column.wallHeight);
+    context.clip();
+    context.strokeStyle = `rgba(38, 79, 35, ${0.55 * column.shade})`;
+    context.lineWidth = Math.max(1.5 * pixelRatio, stalkWidth * 0.36);
+    context.beginPath();
+    context.moveTo(stalkX, column.wallTop + column.wallHeight);
+    context.lineTo(stalkX, column.wallTop);
+    context.stroke();
+    context.strokeStyle = `rgba(201, 190, 91, ${0.7 * column.shade})`;
+    context.lineWidth = Math.max(1.2 * pixelRatio, stalkWidth * 0.22);
+    for (const fraction of [0.28, 0.48, 0.68]) {
+      const leafY = column.wallTop + column.wallHeight * fraction;
+      const leafReach = Math.max(5 * pixelRatio, stalkWidth * 2.5);
+      context.beginPath();
+      context.moveTo(stalkX, leafY);
+      context.quadraticCurveTo(stalkX + leafReach * 0.38, leafY - leafReach * 0.85, stalkX + leafReach, leafY - leafReach * 0.55);
+      context.moveTo(stalkX, leafY + leafReach * 0.35);
+      context.quadraticCurveTo(stalkX - leafReach * 0.38, leafY + leafReach * 0.1, stalkX - leafReach, leafY - leafReach * 0.24);
+      context.stroke();
+    }
+    context.restore();
+  }
+  context.restore();
 
   const exitDx = maze.exit.x - player.x;
   const exitDy = maze.exit.y - player.y;
@@ -339,57 +371,6 @@ function drawScene(canvas, maze, player) {
   return depthBuffer;
 }
 
-function drawMap(canvas, maze, player) {
-  const context = canvas.getContext("2d");
-  const { width, height, pixelRatio } = resizeCanvas(canvas);
-  const cellSize = Math.min(width, height) / MAZE_SIZE;
-  const offsetX = (width - cellSize * MAZE_SIZE) / 2;
-  const offsetY = (height - cellSize * MAZE_SIZE) / 2;
-
-  context.clearRect(0, 0, width, height);
-  context.fillStyle = "rgba(10, 18, 13, 0.88)";
-  context.fillRect(0, 0, width, height);
-
-  maze.grid.forEach((row, y) => {
-    row.forEach((cell, x) => {
-      context.fillStyle = cell === 1 ? "#556c58" : "#17241b";
-      context.fillRect(
-        offsetX + x * cellSize,
-        offsetY + y * cellSize,
-        cellSize + 0.4 * pixelRatio,
-        cellSize + 0.4 * pixelRatio,
-      );
-    });
-  });
-
-  context.fillStyle = "#d9efad";
-  context.beginPath();
-  context.arc(
-    offsetX + maze.exit.x * cellSize,
-    offsetY + maze.exit.y * cellSize,
-    Math.max(2.5 * pixelRatio, cellSize * 0.32),
-    0,
-    Math.PI * 2,
-  );
-  context.fill();
-
-  const playerX = offsetX + player.x * cellSize;
-  const playerY = offsetY + player.y * cellSize;
-  context.strokeStyle = "#fffdf8";
-  context.lineWidth = Math.max(1.5 * pixelRatio, cellSize * 0.16);
-  context.beginPath();
-  context.moveTo(playerX, playerY);
-  context.lineTo(
-    playerX + Math.cos(player.angle) * cellSize * 0.92,
-    playerY + Math.sin(player.angle) * cellSize * 0.92,
-  );
-  context.stroke();
-  context.fillStyle = "#a74f36";
-  context.beginPath();
-  context.arc(playerX, playerY, Math.max(2.2 * pixelRatio, cellSize * 0.28), 0, Math.PI * 2);
-  context.fill();
-}
-
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
   const remainder = seconds % 60;
@@ -455,7 +436,6 @@ function MazeGame({ onClose }) {
   const [seed, setSeed] = useState(() => Date.now() % 2147483647);
   const maze = useMemo(() => createMaze(seed), [seed]);
   const canvasRef = useRef(null);
-  const mapRef = useRef(null);
   const playerRef = useRef({ ...maze.start });
   const keysRef = useRef(new Set());
   const lastCellRef = useRef("1,1");
@@ -464,7 +444,6 @@ function MazeGame({ onClose }) {
   const [elapsed, setElapsed] = useState(0);
   const [steps, setSteps] = useState(0);
   const [completed, setCompleted] = useState(false);
-  const [showMap, setShowMap] = useState(true);
   const [pointerLocked, setPointerLocked] = useState(false);
 
   const pressControl = useCallback((key) => {
@@ -603,13 +582,16 @@ function MazeGame({ onClose }) {
       }
 
       if (canvasRef.current) drawScene(canvasRef.current, maze, player);
-      if (mapRef.current && showMap) drawMap(mapRef.current, maze, player);
       animationFrame = requestAnimationFrame(animate);
     };
 
     animationFrame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrame);
-  }, [maze, showMap]);
+  }, [maze]);
+
+  const exitDirection = normalizeAngle(
+    Math.atan2(maze.exit.y - playerRef.current.y, maze.exit.x - playerRef.current.x) - playerRef.current.angle,
+  );
 
   return (
     <Box
@@ -661,21 +643,30 @@ function MazeGame({ onClose }) {
         <HStack gap="2" pointerEvents="auto">
           <Stat icon={Timer} label="TIME" value={formatTime(elapsed)} />
           <Stat icon={Footprints} label="STEPS" value={String(steps).padStart(2, "0")} />
-          <Button
-            aria-label={showMap ? "Hide map" : "Show map"}
-            minW="11"
-            h="11"
-            p="0"
-            border="1px solid rgba(255,255,255,.16)"
+          <Box
+            aria-label="Direction to exit"
+            role="img"
+            position="absolute"
+            left="50%"
+            top={{ base: "72px", md: "86px" }}
+            transform="translateX(-50%)"
+            display="flex"
+            alignItems="center"
+            gap="2"
+            px="3"
+            py="2"
+            border="1px solid rgba(255,255,255,.18)"
             borderRadius="full"
             bg="rgba(9, 16, 12, 0.68)"
             color="white"
+            fontSize="xs"
+            fontWeight="800"
+            whiteSpace="nowrap"
             backdropFilter="blur(14px)"
-            _hover={{ bg: palette.forest }}
-            onClick={() => setShowMap((visible) => !visible)}
           >
-            <MapPinned size={17} />
-          </Button>
+            <Box as="span" color={palette.lime} fontSize="lg" lineHeight="1" transform={`rotate(${exitDirection}rad)`} aria-hidden="true">↑</Box>
+            EXIT DIRECTION
+          </Box>
           <Button
             aria-label="Close maze"
             minW="11"
@@ -693,24 +684,6 @@ function MazeGame({ onClose }) {
           </Button>
         </HStack>
       </Flex>
-
-      {showMap && (
-        <Box
-          position="absolute"
-          top={{ base: "72px", md: "86px" }}
-          right={{ base: "3", md: "5" }}
-          zIndex="2"
-          w={{ base: "112px", md: "164px" }}
-          h={{ base: "112px", md: "164px" }}
-          overflow="hidden"
-          border="1px solid rgba(255,255,255,.18)"
-          borderRadius={{ base: "xl", md: "2xl" }}
-          boxShadow="0 18px 45px rgba(0,0,0,.34)"
-          pointerEvents="none"
-        >
-          <Box as="canvas" ref={mapRef} display="block" w="100%" h="100%" />
-        </Box>
-      )}
 
       <HStack
         display={{ base: "none", md: "flex" }}
@@ -730,7 +703,7 @@ function MazeGame({ onClose }) {
       >
         <MousePointer2 size={17} />
         <Text fontSize="sm" fontWeight="700">
-          Click for mouse look · WASD move · arrows turn · M map · R restart
+          Click for mouse look · WASD move · arrows turn · R restart
         </Text>
       </HStack>
 
