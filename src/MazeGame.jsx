@@ -297,7 +297,7 @@ function drawScene(canvas, maze, player) {
     const column = depthBuffer[index];
     const stalkX = column.x + stripWidth * 0.5;
     const plantScale = Math.max(0.42, Math.min(1.25, column.wallHeight / (height * 0.82)));
-    const stalkWidth = Math.max(3 * pixelRatio, 7 * pixelRatio * plantScale);
+    const stalkWidth = Math.max(5 * pixelRatio, 12 * pixelRatio * plantScale);
     const plantTop = column.wallTop + column.wallHeight * 0.06;
     const plantBottom = column.wallTop + column.wallHeight * 1.04;
     const bend = ((index * 17) % 9 - 4) * pixelRatio * plantScale;
@@ -699,7 +699,7 @@ function MazeGame({ onClose }) {
       >
         <Stack gap="0" color="white" textShadow="0 2px 12px rgba(0,0,0,.46)">
           <Text fontSize={{ base: "md", md: "xl" }} fontWeight="900" letterSpacing="-0.03em">
-            The Verdant Maze
+            Corn Maze
           </Text>
           <Text display={{ base: "none", sm: "block" }} color="rgba(255,255,255,.62)" fontSize="xs" fontWeight="700">
             Find the glowing exit
