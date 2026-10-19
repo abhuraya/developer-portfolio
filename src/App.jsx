@@ -686,6 +686,58 @@ function ProjectCard({ project, onPlayMaze }) {
   );
 }
 
+function AnimatedMazeDisplay() {
+  const plants = Array.from({ length: 9 }, (_, index) => ({
+    index,
+    offset: index * 13 - 17,
+    height: 48 + index * 6,
+    width: 11 + index * 1.7,
+  }));
+
+  return (
+    <Box role="img" aria-label="Animated first-person view down a sunny corn maze path" position="relative" minH={{ base: "330px", md: "410px" }} overflow="hidden" borderRadius={{ base: "3xl", md: "4xl" }} bg="#8fcbe1" boxShadow="0 28px 90px rgba(49, 75, 56, 0.22)" isolation="isolate">
+      <style>{`
+        @keyframes maze-cloud-drift { from { transform: translateX(-10px); } to { transform: translateX(16px); } }
+        @keyframes maze-camera-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+        @keyframes maze-field-sway { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
+        @media (prefers-reduced-motion: reduce) { .maze-cloud, .maze-camera, .maze-plant { animation: none !important; } }
+      `}</style>
+      <Box position="absolute" inset="0" bg="linear-gradient(180deg, #68b8df 0%, #b8e1e9 42%, #f3dfaa 58%, #6e8b43 59%, #263b27 100%)" />
+      <Box position="absolute" top="9%" right="14%" w={{ base: "44px", md: "64px" }} h={{ base: "44px", md: "64px" }} borderRadius="full" bg="#fff4c4" boxShadow="0 0 55px 18px rgba(255,244,196,.34)" />
+      {[["12%", "22%", "112px"], ["43%", "13%", "150px"], ["75%", "29%", "126px"]].map(([left, top, cloudWidth], index) => (
+        <Box key={left} className="maze-cloud" position="absolute" left={left} top={top} w={{ base: "90px", md: cloudWidth }} h={{ base: "30px", md: "42px" }} borderRadius="full" bg="rgba(255,255,255,.72)" filter="blur(2px)" animation={`maze-cloud-drift ${7 + index * 2}s ease-in-out infinite alternate`}>
+          <Box position="absolute" left="18%" top="-42%" w="44%" h="92%" borderRadius="full" bg="inherit" />
+          <Box position="absolute" right="14%" top="-25%" w="38%" h="78%" borderRadius="full" bg="inherit" />
+        </Box>
+      ))}
+      <Box className="maze-camera" position="absolute" inset="0" animation="maze-camera-bob 4s ease-in-out infinite">
+        <Box position="absolute" inset="0" top="55%" bg="linear-gradient(180deg, #8d9a57 0%, #465a36 45%, #243527 100%)" />
+        <Box position="absolute" left="50%" top="55%" w="100%" h="50%" transform="translateX(-50%)" clipPath="polygon(47% 0, 53% 0, 100% 100%, 0 100%)" bg="linear-gradient(180deg, #b89a61 0%, #82613b 48%, #57422e 100%)" />
+        <Box position="absolute" left="50%" top="57%" w="78%" h="43%" transform="translateX(-50%)" clipPath="polygon(49% 0, 51% 0, 100% 100%, 0 100%)" opacity=".38" backgroundImage="repeating-linear-gradient(176deg, transparent 0 19px, rgba(47,34,22,.34) 20px 22px)" />
+        {[{ side: "left", reverse: false }, { side: "right", reverse: true }].map(({ side, reverse }) => (
+          <Box key={side} position="absolute" inset="0" pointerEvents="none">
+            {plants.map(({ index, offset, height, width }) => (
+              <Box key={index} className="maze-plant" position="absolute" bottom="-9%" left={reverse ? undefined : `${offset}%`} right={reverse ? `${offset}%` : undefined} w={{ base: `${width * 0.72}%`, md: `${width}%` }} h={{ base: `${height * 0.82}%`, md: `${height}%` }} zIndex={index + 1} opacity={0.76 + index * 0.025} transform={`rotate(${index % 2 ? 1 : -1}deg)`} animation={`maze-field-sway ${4 + index % 3}s ease-in-out infinite`} style={{ animationDelay: `${index * -0.4}s` }}>
+                <Box position="absolute" left="46%" top="0" w="12%" h="100%" borderRadius="full" bg="linear-gradient(90deg, #385c2e, #a1a54f 48%, #4c7334)" />
+                {[0, 1, 2, 3, 4].map((leaf) => (
+                  <Box key={leaf} position="absolute" left={leaf % 2 ? "45%" : "48%"} top={`${15 + leaf * 15}%`} w={`${48 + (leaf % 2) * 10}%`} h="18%" transformOrigin="left center" transform={`rotate(${leaf % 2 ? 28 : -32}deg)`} clipPath="polygon(0 45%, 36% 12%, 100% 0, 72% 55%, 100% 100%, 34% 76%)" bg={leaf % 3 === 0 ? "#557b36" : leaf % 3 === 1 ? "#759341" : "#a0a151"} opacity=".94" />
+                ))}
+              </Box>
+            ))}
+          </Box>
+        ))}
+        <Box position="absolute" left="50%" top="48%" w="3px" h="18px" transform="translate(-50%, -50%)" bg="rgba(255,255,255,.85)" boxShadow="0 0 12px rgba(255,255,255,.8)" />
+        <Box position="absolute" left="50%" top="48%" w="18px" h="3px" transform="translate(-50%, -50%)" bg="rgba(255,255,255,.85)" boxShadow="0 0 12px rgba(255,255,255,.8)" />
+      </Box>
+      <Flex position="absolute" top="5" left="5" right="5" align="center" justify="space-between" gap="3">
+        <Badge px="3" py="1.5" borderRadius="full" bg="rgba(22,42,29,.58)" color="white" backdropFilter="blur(8px)">CORN MAZE · FIRST PERSON</Badge>
+        <Text px="3" py="1.5" borderRadius="full" bg="rgba(22,42,29,.48)" color="white" fontFamily="monospace" fontSize="xs">↑ EXIT BEARING</Text>
+      </Flex>
+      <Box position="absolute" left="5" bottom="5" px="3" py="2" border="1px solid rgba(255,255,255,.2)" borderRadius="full" bg="rgba(22,42,29,.55)" color="white" fontSize="xs" fontWeight="800" backdropFilter="blur(8px)">A field level, in motion</Box>
+    </Box>
+  );
+}
+
 function App() {
   const [mazeOpen, setMazeOpen] = useState(false);
 
@@ -793,42 +845,7 @@ function App() {
               </Flex>
             </Stack>
 
-            <Box
-              position="relative"
-              minH={{ base: "330px", md: "410px" }}
-              overflow="hidden"
-              borderRadius={{ base: "3xl", md: "4xl" }}
-              bg={colors.forest}
-              color="white"
-              boxShadow="0 28px 90px rgba(49, 75, 56, 0.22)"
-            >
-              <Box position="absolute" inset="0" opacity="0.28" backgroundImage="linear-gradient(rgba(255,255,255,.13) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.13) 1px, transparent 1px)" backgroundSize="38px 38px" />
-              <Box position="absolute" top="-16%" right="-8%" w="260px" h="260px" borderRadius="full" bg={colors.lime} opacity="0.9" />
-              <Box position="absolute" right="12%" bottom="-18%" w="220px" h="220px" borderRadius="full" border={`38px solid ${colors.rust}`} opacity="0.9" />
-
-              <Stack position="relative" h="100%" minH="inherit" p={{ base: "7", md: "10" }} justify="space-between">
-                <Flex justify="space-between" align="start">
-                  <Badge px="3" py="1.5" borderRadius="full" bg="rgba(255,255,255,.12)" color="white" backdropFilter="blur(8px)">
-                    OPEN TO OPPORTUNITIES
-                  </Badge>
-                  <Text fontFamily="monospace" fontSize="sm" opacity="0.72">
-                    2026
-                  </Text>
-                </Flex>
-
-                <Stack gap="4" maxW="400px">
-                  <Text color={colors.lime} fontFamily="monospace" fontSize="sm">
-                    &lt;developer profile /&gt;
-                  </Text>
-                  <Heading fontSize={{ base: "3xl", md: "5xl" }} letterSpacing="-0.05em" lineHeight="1">
-                    Thoughtful code. Reliable outcomes.
-                  </Heading>
-                  <Text maxW="330px" color="rgba(255,255,255,.72)" lineHeight="1.65">
-                    React interfaces, Node.js services, SQL data, and a steady focus on the person using the product.
-                  </Text>
-                </Stack>
-              </Stack>
-            </Box>
+            <AnimatedMazeDisplay />
           </SimpleGrid>
         </Container>
 
