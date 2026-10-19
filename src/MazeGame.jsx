@@ -218,19 +218,46 @@ function drawScene(canvas, maze, player) {
   context.fillRect(0, 0, width, horizon);
 
   const floor = context.createLinearGradient(0, horizon, 0, height);
-  floor.addColorStop(0, "#657747");
-  floor.addColorStop(1, "#26351f");
+  floor.addColorStop(0, "#9b8052");
+  floor.addColorStop(0.35, "#705536");
+  floor.addColorStop(1, "#3c3022");
   context.fillStyle = floor;
   context.fillRect(0, horizon, width, height - horizon);
 
-  context.strokeStyle = "rgba(255, 244, 190, 0.12)";
+  // A compacted earth track narrows into the distance between the corn rows.
+  context.beginPath();
+  context.moveTo(width * 0.47, horizon);
+  context.lineTo(width * 0.53, horizon);
+  context.lineTo(width * 0.96, height);
+  context.lineTo(width * 0.04, height);
+  context.closePath();
+  const path = context.createLinearGradient(0, horizon, 0, height);
+  path.addColorStop(0, "#b4935f");
+  path.addColorStop(0.48, "#80603b");
+  path.addColorStop(1, "#60472e");
+  context.fillStyle = path;
+  context.fill();
+
+  // Uneven dirt clods and ruts follow the ground perspective.
+  for (let index = 0; index < 90; index += 1) {
+    const progress = ((index * 37) % 89 + 1) / 90;
+    const y = horizon + progress * progress * (height - horizon);
+    const spread = width * (0.04 + progress * 0.42);
+    const x = width * 0.5 + ((((index * 53) % 101) / 100) - 0.5) * spread * 2;
+    const size = Math.max(1, pixelRatio * (0.5 + progress * 2));
+    context.fillStyle = index % 3 === 0 ? "rgba(211, 174, 112, 0.2)" : "rgba(35, 27, 19, 0.2)";
+    context.beginPath();
+    context.ellipse(x, y, size * 1.8, size * 0.65, 0, 0, Math.PI * 2);
+    context.fill();
+  }
+  context.strokeStyle = "rgba(45, 34, 23, 0.24)";
   context.lineWidth = Math.max(1, pixelRatio);
   for (let index = 1; index <= 8; index += 1) {
     const progress = index / 8;
     const y = horizon + progress * progress * (height - horizon);
     context.beginPath();
-    context.moveTo(0, y);
-    context.lineTo(width, y);
+    context.moveTo(width * (0.5 - progress * 0.43), y);
+    context.lineTo(width * (0.5 + progress * 0.43), y);
     context.stroke();
   }
 
@@ -264,37 +291,76 @@ function drawScene(canvas, maze, player) {
     depthBuffer.push({ x, distance: correctedDistance, wallTop, wallHeight, shade });
   }
 
-  // Layer repeating stalk stems and leaf blades over the raycast walls.
-  context.save();
-  for (let index = 0; index < depthBuffer.length; index += Math.max(5, Math.floor(24 / stripWidth))) {
+  // Model neighboring corn plants along the wall with ribbed stalks,
+  // broad tapered leaves, and occasional golden ears tucked in husks.
+  for (let index = 0; index < depthBuffer.length; index += Math.max(8, Math.floor(46 / stripWidth))) {
     const column = depthBuffer[index];
     const stalkX = column.x + stripWidth * 0.5;
-    const stalkWidth = Math.max(2 * pixelRatio, stripWidth * 1.7);
+    const plantScale = Math.max(0.42, Math.min(1.25, column.wallHeight / (height * 0.82)));
+    const stalkWidth = Math.max(3 * pixelRatio, 7 * pixelRatio * plantScale);
+    const plantTop = column.wallTop + column.wallHeight * 0.06;
+    const plantBottom = column.wallTop + column.wallHeight * 1.04;
+    const bend = ((index * 17) % 9 - 4) * pixelRatio * plantScale;
     context.save();
     context.beginPath();
-    context.rect(stalkX - stalkWidth, column.wallTop, stalkWidth * 2, column.wallHeight);
+    context.rect(stalkX - stalkWidth * 7, column.wallTop, stalkWidth * 14, column.wallHeight);
     context.clip();
-    context.strokeStyle = `rgba(38, 79, 35, ${0.55 * column.shade})`;
-    context.lineWidth = Math.max(1.5 * pixelRatio, stalkWidth * 0.36);
+
+    const stem = context.createLinearGradient(stalkX - stalkWidth, 0, stalkX + stalkWidth, 0);
+    stem.addColorStop(0, `rgba(42, 84, 39, ${0.9 * column.shade})`);
+    stem.addColorStop(0.45, `rgba(132, 157, 65, ${0.92 * column.shade})`);
+    stem.addColorStop(0.72, `rgba(178, 170, 79, ${0.82 * column.shade})`);
+    stem.addColorStop(1, `rgba(48, 91, 39, ${0.9 * column.shade})`);
+    context.strokeStyle = stem;
+    context.lineWidth = stalkWidth;
     context.beginPath();
-    context.moveTo(stalkX, column.wallTop + column.wallHeight);
-    context.lineTo(stalkX, column.wallTop);
+    context.moveTo(stalkX + bend, plantBottom);
+    context.quadraticCurveTo(stalkX - bend * 0.4, (plantTop + plantBottom) / 2, stalkX, plantTop);
     context.stroke();
-    context.strokeStyle = `rgba(201, 190, 91, ${0.7 * column.shade})`;
-    context.lineWidth = Math.max(1.2 * pixelRatio, stalkWidth * 0.22);
-    for (const fraction of [0.28, 0.48, 0.68]) {
-      const leafY = column.wallTop + column.wallHeight * fraction;
-      const leafReach = Math.max(5 * pixelRatio, stalkWidth * 2.5);
+
+    for (let leaf = 0; leaf < 4; leaf += 1) {
+      const leafY = plantTop + column.wallHeight * (0.38 + leaf * 0.14);
+      const side = (leaf + index) % 2 === 0 ? 1 : -1;
+      const reach = stalkWidth * (2.8 + ((leaf + index) % 3) * 0.65);
+      const tipX = stalkX + side * reach;
+      const tipY = leafY - column.wallHeight * (0.1 + (leaf % 2) * 0.025);
       context.beginPath();
       context.moveTo(stalkX, leafY);
-      context.quadraticCurveTo(stalkX + leafReach * 0.38, leafY - leafReach * 0.85, stalkX + leafReach, leafY - leafReach * 0.55);
-      context.moveTo(stalkX, leafY + leafReach * 0.35);
-      context.quadraticCurveTo(stalkX - leafReach * 0.38, leafY + leafReach * 0.1, stalkX - leafReach, leafY - leafReach * 0.24);
+      context.quadraticCurveTo(stalkX + side * reach * 0.28, leafY - column.wallHeight * 0.12, tipX, tipY);
+      context.quadraticCurveTo(stalkX + side * reach * 0.48, leafY + column.wallHeight * 0.045, stalkX + side * stalkWidth * 0.45, leafY + column.wallHeight * 0.035);
+      context.closePath();
+      context.fillStyle = leaf % 2 === 0
+        ? `rgba(77, 119, 47, ${0.88 * column.shade})`
+        : `rgba(145, 155, 65, ${0.8 * column.shade})`;
+      context.fill();
+      context.strokeStyle = `rgba(204, 196, 112, ${0.42 * column.shade})`;
+      context.lineWidth = Math.max(1, pixelRatio * plantScale);
+      context.beginPath();
+      context.moveTo(stalkX, leafY + column.wallHeight * 0.02);
+      context.quadraticCurveTo(stalkX + side * reach * 0.36, leafY - column.wallHeight * 0.035, tipX * 0.96 + stalkX * 0.04, tipY + column.wallHeight * 0.025);
       context.stroke();
+    }
+
+    if (index % 3 === 0) {
+      const earY = plantTop + column.wallHeight * 0.62;
+      const earX = stalkX + stalkWidth * 0.55;
+      context.save();
+      context.translate(earX, earY);
+      context.rotate(-0.16);
+      context.fillStyle = `rgba(218, 184, 79, ${0.9 * column.shade})`;
+      context.beginPath();
+      context.ellipse(0, 0, stalkWidth * 0.58, column.wallHeight * 0.055, 0, 0, Math.PI * 2);
+      context.fill();
+      context.strokeStyle = `rgba(116, 135, 55, ${0.9 * column.shade})`;
+      context.lineWidth = stalkWidth * 0.48;
+      context.beginPath();
+      context.moveTo(-stalkWidth * 0.2, column.wallHeight * 0.06);
+      context.quadraticCurveTo(stalkWidth, column.wallHeight * 0.035, stalkWidth * 0.3, -column.wallHeight * 0.04);
+      context.stroke();
+      context.restore();
     }
     context.restore();
   }
-  context.restore();
 
   const exitDx = maze.exit.x - player.x;
   const exitDy = maze.exit.y - player.y;
