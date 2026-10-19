@@ -80,10 +80,10 @@ const projects = [
   },
   {
     number: "04",
-    title: "Corn Maze",
+    title: "Maze",
     type: "Playable first-person experiment",
     description:
-      "A procedurally generated first-person cornfield maze with a custom raycasting engine, leafy stalk walls, open sky, smooth movement, and a directional exit indicator.",
+      "A procedurally generated first-person hedge maze with a custom raycasting engine, dense leafy walls, open sky, smooth movement, and a directional exit indicator.",
     highlights: ["New maze every run", "Desktop + mobile controls", "Timer and step tracking"],
     tags: ["React", "Canvas API", "Raycasting", "Procedural generation"],
     repository: "https://github.com/abhuraya/developer-portfolio",
@@ -268,7 +268,7 @@ function CornMazeCardVisual() {
       ))}
       <Box position="absolute" left="50%" top="50%" w="2px" h="14px" transform="translate(-50%, -50%)" bg="rgba(255,255,255,.88)" boxShadow="0 0 8px rgba(255,255,255,.9)" />
       <Box position="absolute" left="50%" top="50%" w="14px" h="2px" transform="translate(-50%, -50%)" bg="rgba(255,255,255,.88)" boxShadow="0 0 8px rgba(255,255,255,.9)" />
-      <Badge position="absolute" top="4" left="4" px="3" py="1.5" borderRadius="full" bg="rgba(22,42,29,.58)" color="white" backdropFilter="blur(8px)">FIRST-PERSON HEDGE MAZE</Badge>
+      <Badge position="absolute" top="4" left="4" px="3" py="1.5" borderRadius="full" bg="rgba(22,42,29,.58)" color="white" backdropFilter="blur(8px)">FIRST-PERSON MAZE</Badge>
     </Box>
   );
 }
@@ -696,7 +696,7 @@ function AnimatedMazeDisplay() {
   }));
 
   return (
-    <Box role="img" aria-label="Animated first-person view down a sunny corn maze path" position="relative" minH={{ base: "330px", md: "410px" }} overflow="hidden" borderRadius={{ base: "3xl", md: "4xl" }} bg="#8fcbe1" boxShadow="0 28px 90px rgba(49, 75, 56, 0.22)" isolation="isolate">
+    <Box role="img" aria-label="Animated first-person view down a sunny hedge maze path" position="relative" minH={{ base: "330px", md: "410px" }} overflow="hidden" borderRadius={{ base: "3xl", md: "4xl" }} bg="#8fcbe1" boxShadow="0 28px 90px rgba(49, 75, 56, 0.22)" isolation="isolate">
       <style>{`
         @keyframes maze-cloud-drift { from { transform: translateX(-10px); } to { transform: translateX(16px); } }
         @keyframes maze-camera-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
@@ -719,9 +719,22 @@ function AnimatedMazeDisplay() {
           <Box key={side} position="absolute" inset="0" pointerEvents="none">
             {plants.map(({ index, offset, height, width }) => (
               <Box key={index} className="maze-plant" position="absolute" bottom="-9%" left={reverse ? undefined : `${offset}%`} right={reverse ? `${offset}%` : undefined} w={{ base: `${width * 0.72}%`, md: `${width}%` }} h={{ base: `${height * 0.82}%`, md: `${height}%` }} zIndex={index + 1} opacity={0.76 + index * 0.025} transform={`rotate(${index % 2 ? 1 : -1}deg)`} animation={`maze-field-sway ${4 + index % 3}s ease-in-out infinite`} style={{ animationDelay: `${index * -0.4}s` }}>
-                <Box position="absolute" left="46%" top="0" w="12%" h="100%" borderRadius="full" bg="linear-gradient(90deg, #385c2e, #a1a54f 48%, #4c7334)" />
-                {[0, 1, 2, 3, 4].map((leaf) => (
-                  <Box key={leaf} position="absolute" left={leaf % 2 ? "45%" : "48%"} top={`${15 + leaf * 15}%`} w={`${48 + (leaf % 2) * 10}%`} h="18%" transformOrigin="left center" transform={`rotate(${leaf % 2 ? 28 : -32}deg)`} clipPath="polygon(0 45%, 36% 12%, 100% 0, 72% 55%, 100% 100%, 34% 76%)" bg={leaf % 3 === 0 ? "#557b36" : leaf % 3 === 1 ? "#759341" : "#a0a151"} opacity=".94" />
+                <Box position="absolute" inset="3% 4% 0" borderRadius="48% 52% 18% 20%" bg="linear-gradient(135deg, #355f34 0%, #527d3b 48%, #274d2e 100%)" boxShadow="inset 8px 0 12px rgba(16,42,25,.34), inset -5px 0 10px rgba(179,190,106,.24)" />
+                {Array.from({ length: 16 }, (_, leaf) => (
+                  <Box
+                    key={leaf}
+                    position="absolute"
+                    left={`${(leaf * 37 + index * 11) % 82}%`}
+                    top={`${(leaf * 53 + index * 17) % 84}%`}
+                    w={`${20 + (leaf * 11) % 24}%`}
+                    h={`${13 + (leaf * 7) % 17}%`}
+                    transform={`rotate(${(leaf * 31 + index * 13) % 70 - 35}deg)`}
+                    borderRadius="55% 45% 58% 42%"
+                    border="1px solid rgba(168,194,112,.28)"
+                    bg={leaf % 4 === 0 ? "#6d914a" : leaf % 4 === 1 ? "#3e7138" : leaf % 4 === 2 ? "#557f3c" : "#799b50"}
+                    boxShadow="inset 2px 2px 5px rgba(202,218,147,.24), 1px 3px 5px rgba(15,43,24,.3)"
+                    opacity=".94"
+                  />
                 ))}
               </Box>
             ))}
@@ -731,7 +744,7 @@ function AnimatedMazeDisplay() {
         <Box position="absolute" left="50%" top="48%" w="18px" h="3px" transform="translate(-50%, -50%)" bg="rgba(255,255,255,.85)" boxShadow="0 0 12px rgba(255,255,255,.8)" />
       </Box>
       <Flex position="absolute" top="5" left="5" right="5" align="center" justify="space-between" gap="3">
-        <Badge px="3" py="1.5" borderRadius="full" bg="rgba(22,42,29,.58)" color="white" backdropFilter="blur(8px)">CORN MAZE · FIRST PERSON</Badge>
+        <Badge px="3" py="1.5" borderRadius="full" bg="rgba(22,42,29,.58)" color="white" backdropFilter="blur(8px)">MAZE · FIRST PERSON</Badge>
         <Text px="3" py="1.5" borderRadius="full" bg="rgba(22,42,29,.48)" color="white" fontFamily="monospace" fontSize="xs">↑ EXIT BEARING</Text>
       </Flex>
       <Box position="absolute" left="5" bottom="5" px="3" py="2" border="1px solid rgba(255,255,255,.2)" borderRadius="full" bg="rgba(22,42,29,.55)" color="white" fontSize="xs" fontWeight="800" backdropFilter="blur(8px)">A field level, in motion</Box>
